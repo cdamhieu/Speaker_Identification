@@ -144,7 +144,7 @@ def create_cnn_model_VoxCeleb(nb_speaker, height_input, width_input):
     return model
 
         
-def predict_one_record(dic, nb_speaker):
+def predict_one_record(dic, nb_speaker, model):
 
     """
     Predict the output for one record (already transform in one or several spectrograms).
@@ -154,6 +154,7 @@ def predict_one_record(dic, nb_speaker):
     
     dic                        Mel_spectrogram(s) of one record
     nb_speaker                 Total number of speakers in the dataset
+    model                      Model of the network
 
     Returns
     -------
@@ -162,7 +163,7 @@ def predict_one_record(dic, nb_speaker):
 
     """
     
-    y = model1.predict(x = dic['mel_spectrogram'], verbose = 1)
+    y = model.predict(x = dic['mel_spectrogram'], verbose = 1)
     y_prim = y.mean(0)
     y_prim = y_prim.reshape((1,nb_speaker))
     y_predic = np.zeros([1, nb_speaker])
@@ -171,7 +172,7 @@ def predict_one_record(dic, nb_speaker):
     return y_predic
 
 
-def predict_model_accuracy(data_dic, nb_speaker):
+def predict_model_accuracy(data_dic, nb_speaker, model):
 
     """
     Predict the output for a whole dictionary of data (mel-spectrogram). Calculate the percentage of well-identified speakers.
@@ -181,6 +182,7 @@ def predict_model_accuracy(data_dic, nb_speaker):
 
     data_dic                   Dictionnaries of data to predict
     nb_speaker                 Total number of speakers in the dataset
+    model                      Model of the network
 
     Returns
     -------
@@ -194,7 +196,7 @@ def predict_model_accuracy(data_dic, nb_speaker):
 
     for i, dic in enumerate(data_dic):
         
-        y_predic = predict_one_record(dic, nb_speaker)
+        y_predic = predict_one_record(dic, nb_speaker, model)
 
         """
         np.savetxt('/services/scratch/perception/cdamhieu/results/matrix_labels/150_epochs/before_mean/matrix_labels'+str(i)+'.csv', y, delimiter=",")
@@ -207,5 +209,5 @@ def predict_model_accuracy(data_dic, nb_speaker):
 
         percentage_accuracy = float(number_accurate_test) / len(data_dic)
 
-        return percentage_accuracy, number_accurate_test
+    return percentage_accuracy, number_accurate_test
 

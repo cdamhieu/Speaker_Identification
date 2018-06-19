@@ -28,6 +28,7 @@ def compute_mel_spectrogram_from_file_list(wavfile_list, fs=16000, nfft=1024, ho
     fs                          Sampling rate
     nfft                        Length of the FFT window
     hop                         Number of samples between successive frames
+
     trim                        Boolean indicating if leading and trailing silences should be trimmed
     top_db                      The threshold (in decibels) below reference to consider as silence (see librosa doc)
     out_file                    Path to the pickle file for saving the data
@@ -183,6 +184,7 @@ def load_mel_spectrogram_in_array_TIMIT_train(data_file, ind_first_file=0, num_f
                                 Each dictionary has the following fields:
                                     'file': The wav file name    
                                     'index_begin': Column index in 'data_mel_train' and 'data_label_train' where the current file begins
+
     data_mel_test               Mel-spectrogram of the test data as an array of size (number of frequency bins, number of time frames)
     data_label_test             An array corresponding of the expected outputs of the CNN for the train data
     data_info_test              A list of dictionaries of the test data, the length of the list is equal to num_files
@@ -244,6 +246,7 @@ def load_mel_spectrogram_in_array_TIMIT_train(data_file, ind_first_file=0, num_f
                 num_samples_train += (dic['mel_spectrogram'].shape[1]-frame_length) // distance_between_frames + 1
                 num_samples_train_per_speaker[index_speaker] += (dic['mel_spectrogram'].shape[1]-frame_length) // distance_between_frames + 1
 
+    
 
 
     data_info_train = [None]
@@ -337,6 +340,7 @@ def load_mel_spectrogram_in_array_TIMIT(data_file_train=None, data_file_test=Non
                                 Each dictionary has the following fields:
                                     'file': The wav file name    
                                     'index_begin': Column index in 'data_mel_train' and 'data_label_train' where the current file begins
+
     data_mel_test               Mel-spectrogram of the test data as an array of size (number of frequency bins, number of time frames)
     data_label_test             An array corresponding of the expected outputs of the CNN for the train data
     data_info_test              A list of dictionaries of the test data, the length of the list is equal to num_files
@@ -398,12 +402,12 @@ def load_mel_spectrogram_in_array_TIMIT(data_file_train=None, data_file_test=Non
 
     speaker_list = speaker_list_TIMIT()
     num_samples_train_per_speaker = [0 for i in range(len(speaker_list))]
+
+    print "len(speaker_list) = " + str(len(num_samples_train_per_speaker))
     
     test_sample = 4
 
     too_short_records = []
-
-    index_speaker = 0
 
     # Shuffle the dataset
     #data_dic_train = shuffle_list_10_by_10(data_dic_train)
@@ -435,53 +439,48 @@ def load_mel_spectrogram_in_array_TIMIT(data_file_train=None, data_file_test=Non
         speaker = dic['speaker']
         file = dic['file']
         
-        sample_number = dic['mel_spectrogram'].shape[1]//frame_length
-        sample_number_train = (dic['mel_spectrogram'].shape[1]-frame_length) // distance_between_frames + 1
-
         if verbose:
             print('processing file %d/%d - %s/%s/%s/%s\n' % (n+1, len(data_dic_train), set_type, dialect, speaker, file))
             
         for i, speaker_l in enumerate(speaker_list):
             if speaker == speaker_l['name']: # Comparison between the current speaker and the i-th speaker of the speaker list
                 index_speaker = speaker_l['numero']
-
-                
+   
         current_ind_mel = 0
 
-        if sample_number != 0:
+        if dic['mel_spectrogram'].shape[1] >= frame_length:
 
             if n%10 == test_sample or n%10 == test_sample + 1: # for testing
 
+                num_samples_testing = dic['mel_spectrogram'].shape[1] // frame_length
+
                 labels = np.zeros([1, len(speaker_list)])
                 labels[0,index_speaker] = 1
-                data_mel = np.zeros([sample_number, num_freq, frame_length])
-            
-                for i in range(sample_number):
-                             
-                    data_mel[i,:,:] = dic['mel_spectrogram'][:,current_ind_mel:current_ind_mel+frame_length]
-                    i += 1
-                    current_ind_mel += frame_length
+                mel_specs = np.zeros([num_samples_testing, num_freq, frame_length])
 
-                data_mel = data_mel.reshape(sample_number, num_freq, frame_length, 1)
+                #[mel_specs, current_ind] = recover_frames_spec_one_record(num_samples_testing, mel_specs, dic, frame_length, distance_between_frames)
+
+                
+
+                
+                mel_specs = mel_specs.reshape(num_samples_testing, num_freq, frame_length, 1)
                         
                 data_info_test[current_ind_test] = {'index_begin': current_ind_test, 'set': set_type, 'dialect': dialect, 'speaker': speaker,
-                                   'file': file, 'sample_number':sample_number, 'mel_spectrogram':data_mel, 'labels':labels}
+                                   'file': file, 'sample_number': num_samples_testing, 'mel_spectrogram': mel_specs, 'labels': labels}
                 current_ind_test += 1
 
             
             else: # for training
+
+                num_samples_train = (dic['mel_spectrogram'].shape[1] - frame_length) // distance_between_frames + 1
             
-                data_label_train[current_ind_train:current_ind_train+sample_number_train, index_speaker] = np.ones([sample_number_train])
+                data_label_train[current_ind_train:current_ind_train + num_samples_train, index_speaker] = np.ones([num_samples_train])
 
                 data_info_train.append({'index_begin': current_ind_train, 'set': set_type, 'dialect': dialect, 'speaker': speaker,
                  'file': file})
-        
-                for i in range(sample_number_train):
-                             
-                    data_mel_train[current_ind_train,:,:] = dic['mel_spectrogram'][:,current_ind_mel:current_ind_mel+frame_length]
-                    current_ind_train += 1
-                    current_ind_mel += distance_between_frames
 
+                [mel_specs, current_ind_train] = recover_frames_spec_one_record(num_samples_testing, mel_specs, dic, frame_length, distance_between_frames, current_ind = current_ind_train)
+                
     
     for n, dic in enumerate(data_dic_test):
         
@@ -548,6 +547,7 @@ def compute_data_TIMIT_train(out_file=None):
     fs                          Sampling rate
     nfft                        Length of the FFT window
     hop                         Number of samples between successive frames
+
     """
     
     fs = int(16e3) # Sampling rate
@@ -575,6 +575,7 @@ def compute_data_TIMIT_test(out_file=None):
     fs                          Sampling rate
     nfft                        Length of the FFT window
     hop                         Number of samples between successive frames
+
     """
     
     fs = int(16e3) # Sampling rate

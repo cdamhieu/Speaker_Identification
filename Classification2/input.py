@@ -124,3 +124,17 @@ def recover_num_samples_without_validation(num_samples_train, num_samples_train_
         
     return num_samples_train, num_samples_train_per_speaker, num_samples_test, index_speaker, too_short_records
     
+
+def recover_frames_spec_one_record(num_samples, mel_specs, dic, frame_length, distance_between_frames, current_ind = 0):
+
+    current_ind_mel_dic = 0
+    
+    for i in range(num_samples):
+
+        mel_specs[current_ind, :, :] = dic['mel_spectrogram'][:, current_ind_mel : current_ind_mel + frame_length]
+        current_ind += 1
+        current_ind_mel += distance_between_frames
+
+    return mel_specs, current_ind
+
+
