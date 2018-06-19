@@ -1,0 +1,22 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+
+"""
+@author: Caroline Dam Hieu
+"""
+
+def save_list_of_dictionnaries(out_file = None, list_to_save):
+
+    data_folder = '/services/scratch/perception/cdamhieu/file_list/'
+
+    if out_file == None:
+        out_file = os.path.join(data_folder, 'list.txt')
+
+    saved_file = open(out_file, "a")
+
+    for i in range(len(list_to_save)):
+
+        saved_file.write("numero : " + list_to_save[i]['numero'] + "   name of the speaker " + list_to_save[i]['name'] + "\n")
+
+
+        

@@ -1,0 +1,38 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+
+"""
+@author: Caroline Dam Hieu
+"""
+
+import os
+
+
+
+def speaker_list_TIMIT():
+
+    """
+    Return a list of all speakers of TIMIT_TRAIN
+
+    Returns
+    -------
+
+    speaker_list                List of all speakers in the TIMIT TRAIN
+
+    """
+
+    speaker_list = []
+    data_folder = '/scratch/paragorn/cdamhieu/datasets/TIMIT/TRAIN'
+
+    for i in range(1,9):
+        strg = "DR" + str(i)
+        path = os.path.join(data_folder, strg)
+        speaker_list.extend(os.listdir(path))
+
+    speaker_dic = [None] * len(speaker_list)
+    
+    for n, speaker in enumerate(speaker_list):
+        speaker_dic[n] = {'numero':n, 'name':speaker}
+    
+    return speaker_dic
+  

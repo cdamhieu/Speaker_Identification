@@ -1,0 +1,34 @@
+#!/usr/bin/env python2.7
+# -*- coding: utf-8 -*-
+
+"""
+@author: Caroline Dam Hieu
+"""
+
+import matplotlib.pyplot as plt
+
+
+# Loss Curves
+def loss_curve_training_validation(history):
+    
+    fig = plt.figure(figsize=[8,6])
+    plt.plot(history.history['loss'],'r',linewidth=3.0)
+    plt.plot(history.history['val_loss'],'b',linewidth=3.0)
+    plt.legend(['Training loss', 'Validation Loss'],fontsize=18)
+    plt.xlabel('Epochs ',fontsize=16)
+    plt.ylabel('Loss',fontsize=16)
+    plt.title('Loss Curves',fontsize=16)
+    fig.savefig('/services/scratch/perception/cdamhieu/images/Speaker Identification/Classification/Essai12/loss_curves.png')
+
+
+
+# Accuracy Curves
+fig2 = plt.figure(figsize=[8,6])
+plt.plot(history.history['acc'],'r',linewidth=3.0)
+#plt.plot(history.history['val_acc'],'b',linewidth=3.0)
+plt.legend(['Training Accuracy'],fontsize=18)
+plt.xlabel('Epochs ',fontsize=16)
+plt.ylabel('Accuracy',fontsize=16)
+plt.title('Accuracy Curves',fontsize=16)
+fig2.savefig('/services/scratch/perception/cdamhieu/results/curves/50_epochs/accuracy_curve.png')
+
